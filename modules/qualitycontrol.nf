@@ -32,19 +32,37 @@ process MultiQC {
     """
 }
 
-process trimmomatic {
+process trim_galore {
 
-    label 'trimmomatic'
+    label 'trim_galore'
 
     input:
     tuple val(name), path(reads)
 
     output:
-    path("${name}_trimmed.fq.gz"), emit: trimmed_reads
+     tuple val(name), path("${name}_trimmed.fq.gz"), emit: trimmed_reads
 
     script:
     """
-    trimmomatic SE -phred33 $reads ${name}_trimmed.fq.gz ILLUMINACLIP:TruSeq3-SE.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
+    trim_galore --quality 20 --phred33 ${reads} --basename ${name} --small_rna 
+    """
+  
+}
+//--path_to_cutadapt
+
+process fastqc_trimmed {
+    label 'fastqc'
+    
+    input:
+    path trimmed_reads
+    
+    output:
+    path "results/*" 
+    
+    script:
+    """
+    mkdir -p results
+    fastqc --noextract -o results ${data}
     """
 }
 
