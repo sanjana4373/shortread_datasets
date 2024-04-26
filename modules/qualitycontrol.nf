@@ -66,3 +66,22 @@ process fastqc_trimmed {
     """
 }
 
+process make_transposable_element_gene {
+    label 'seqkit'
+    
+    input:
+    path(latest_transcriptome)
+    path(Araport11)
+    
+    output:
+    path "transposable_elements_atRTD3.fasta", emit: ref
+    
+    script:
+    """
+    grep transposable_element_gene ${Araport11} | cut -f 1 > filter_these_transposable_element_gene.txt
+    
+    seqkit grep -r -f filter_these_transposable_element_gene.txt ${latest_transcriptome} -o transposable_elements_atRTD3.fasta 
+    """
+    
+}
+

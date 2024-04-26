@@ -5,6 +5,7 @@ include {FastQC} from "./modules/qualitycontrol.nf"
 include {MultiQC} from "./modules/qualitycontrol.nf"
 include {trim_galore} from "./modules/qualitycontrol.nf"
 include {fastqc_trimmed} from "./modules/qualitycontrol.nf"
+include {make_transposable_element_gene} from "./modules/qualitycontrol.nf"
 
 workflow {
   
@@ -13,11 +14,15 @@ workflow {
     //FastQC_results = FastQC(myFileChannel).collect()
     //MultiQC(FastQC_results)  // Use the specific output channel from FastQC
     //trim_galoreChannel = Channel.fromPath('raw_data/*/*/*.fq.gz')
-    trim_galoreChannel = Channel.fromFilePairs('raw_data/*/*/*.fq.gz', size: 1, flat: true)
+    //trim_galoreChannel = Channel.fromFilePairs('raw_data/*/*/*.fq.gz', size: 1, flat: true)
+    //trim_galoreChannel.view()
+    //trimmed_reads = trim_galore(trim_galoreChannel)
     
-    trim_galoreChannel.view()
+    latest_transcriptome = Channel.fromPath("trancriptome.fa")
+    latest_transcriptome.view()
+    araport11 = Channel.fromPath("Araport11_gene_type")
+    make_transposable_element_gene(latest_transcriptome, araport11) 
     
-    trimmed_reads = trim_galore(trim_galoreChannel)
     //FastQC_results_trimmed = FastQC(trimmed_reads)
 }
 
