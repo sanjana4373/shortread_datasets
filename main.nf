@@ -6,6 +6,7 @@ include {MultiQC} from "./modules/qualitycontrol.nf"
 include {trim_galore} from "./modules/qualitycontrol.nf"
 include {fastqc_trimmed} from "./modules/qualitycontrol.nf"
 include {make_transposable_element_gene} from "./modules/qualitycontrol.nf"
+include {bowtie_index} from "./modules/qualitycontrol.nf"
 
 workflow {
   
@@ -19,9 +20,11 @@ workflow {
     //trimmed_reads = trim_galore(trim_galoreChannel)
     
     latest_transcriptome = Channel.fromPath("trancriptome.fa")
-    latest_transcriptome.view()
     araport11 = Channel.fromPath("Araport11_gene_type")
-    make_transposable_element_gene(latest_transcriptome, araport11) 
+    make_transposable_element_gene(latest_transcriptome, araport11)
+    
+    bowtie_index(make_transposable_element_gene.out.ref)
+    
     
     //FastQC_results_trimmed = FastQC(trimmed_reads)
 }

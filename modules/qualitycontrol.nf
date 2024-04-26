@@ -85,3 +85,19 @@ process make_transposable_element_gene {
     
 }
 
+process bowtie_index {
+  label 'bowtie'
+  
+  input:
+  path(ref)
+  
+  output:
+  path "*"
+  
+  script:
+  """
+  bowtie-build ${ref} ${ref.getSimpleName()}
+  """
+
+}
+
