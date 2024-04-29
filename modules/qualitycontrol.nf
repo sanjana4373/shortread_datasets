@@ -5,26 +5,27 @@ process FastQC {
     label 'fastqc'
     
     input:
-    path data
+      tuple val(name), path(data)
     
     output:
-    path "results/*" 
+      path("*")
     
     script:
     """
-    mkdir -p results
-    fastqc --noextract -o results ${data}
+  
+    fastqc --noextract -o . ${data}
     """
 }
 
 process MultiQC {
     label 'multiqc'
-  
+    publishDir "results/multiqc"
+
     input:
-    path results_files
+      path(results_files)
     
     output: 
-    path "multiqc_report.html" 
+      path "multiqc_report.html" 
 
     script:
     """
@@ -40,7 +41,7 @@ process trim_galore {
     tuple val(name), path(reads)
 
     output:
-     tuple val(name), path("${name}_trimmed.fq.gz"), emit: trimmed_reads
+     tuple val(name), path("*trimmed.fq.gz"), emit: trimmed_reads
 
     script:
     """
@@ -101,3 +102,36 @@ process bowtie_index {
 
 }
 
+process bowtie_align {
+  label 'bowtie'
+  
+  input:
+  tuple val(name), path(trimmed_reads)
+  path(index)
+  
+  output:
+  tuple val(name), path("*.fastq"), emit: filtered_reads
+  tuple val(name), path("*sam"), emit: sam
+  path("*.log"), emit: logs
+  
+  script:
+  """
+  bowtie -x ${index[0].getSimpleName()} ${trimmed_reads} -q --un ${trimmed_reads.getSimpleName()}_filtered.fastq -S ${name}.sam 2> ${name}.log
+  """
+}
+
+process sam_to_bam {
+  label 'samtools'
+  
+  input:
+  tuple val(name), path(alignment)
+  
+  output:
+  tuple val(name), path("*.bam"), emit: bam
+  
+  script:
+  """
+  samtools view -b -o ${name}.bam ${alignment}
+  """
+}
+  
