@@ -9,10 +9,9 @@ include {make_transposable_element_gene} from "./modules/qualitycontrol.nf"
 include {bowtie_index}                   from "./modules/qualitycontrol.nf"
 include {bowtie_align}                   from "./modules/qualitycontrol.nf"
 include {sam_to_bam}                     from "./modules/qualitycontrol.nf"
+include {bam_to_sorted_bam}              from "./modules/qualitycontrol.nf"
 
 workflow {
-    
-    
     
     myFileChannel = Channel.fromFilePairs('raw_data/*/*/*.fq.gz', size: 1, flat: true)
     myFileChannel.view()
@@ -31,6 +30,7 @@ workflow {
     bowtie_align(trim_galore.out.trimmed_reads, bowtie_index.out.collect())
     
     sam_to_bam(bowtie_align.out.sam)
+    bam_to_sorted_bam(sam_to_bam.out.bam)
     
 }    
     //FastQC_results = FastQC(myFileChannel).collect()

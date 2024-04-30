@@ -134,4 +134,19 @@ process sam_to_bam {
   samtools view -b -o ${name}.bam ${alignment}
   """
 }
+
+process bam_to_sorted_bam {
   
+  label 'samtools'
+  
+  input:
+  tuple val(name), path(bam_file)
+  
+  output:
+  tuple val(name), path("*sorted_bam"), emit: sorted_bam
+  
+  script:
+  """
+  samtools sort -o ${name}.sorted_bam ${bam_file}
+  """
+}  
