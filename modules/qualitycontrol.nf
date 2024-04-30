@@ -150,3 +150,18 @@ process bam_to_sorted_bam {
   samtools sort -o ${name}.sorted_bam ${bam_file}
   """
 }  
+
+process sorted_bam_to_index {
+    label 'samtools'
+    
+    input:
+    tuple val(name), path(sorted_bam_file) 
+    
+    output:
+    tuple val(name), path("${sorted_bam_file}.bai"), emit: bam_index
+    
+    script:
+    """
+    samtools index ${sorted_bam_file}
+    """
+}
