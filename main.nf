@@ -4,7 +4,8 @@ nextflow.enable.dsl=2
 include {FastQC}                         from "./modules/qualitycontrol.nf"
 include {MultiQC}                        from "./modules/qualitycontrol.nf"
 include {trim_galore}                    from "./modules/qualitycontrol.nf"
-include {fastqc_trimmed}                 from "./modules/qualitycontrol.nf"
+//include {fastqc_after}                   from "./modules/qualitycontrol.nf"
+//include {multiqc_after}                  from "./modules/qualitycontrol.nf"
 include {make_transposable_element_gene} from "./modules/qualitycontrol.nf"
 include {bowtie_index}                   from "./modules/qualitycontrol.nf"
 include {bowtie_align}                   from "./modules/qualitycontrol.nf"
@@ -19,7 +20,8 @@ workflow {
     FastQC(myFileChannel)
     MultiQC(FastQC.out.collect())
     trim_galore(myFileChannel)
-    //multiqc_after(trim_galore.out)
+    //fastqc_after(trim_galore.out)
+    //multiqc_after(trim_galore.out.trimmed_fastqc.collect())
     
     
     

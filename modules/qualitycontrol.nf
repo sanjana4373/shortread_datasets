@@ -36,36 +36,54 @@ process MultiQC {
 process trim_galore {
 
     label 'trim_galore'
-
+    publishDir "results/trim_galore/", pattern: "*.html"
+    
     input:
     tuple val(name), path(reads)
 
     output:
      tuple val(name), path("*trimmed.fq.gz"), emit: trimmed_reads
-
+     tuple val(name), path("*trimmed_fastqc.html"), emit: trimmed_fastqc
+     
     script:
     """
-    trim_galore --quality 20 --phred33 ${reads} --basename ${name} --small_rna 
+    trim_galore --quality 20 --phred33 ${reads} --basename ${name} --fastqc --illumina
     """
   
 }
 //--path_to_cutadapt
 
-process fastqc_trimmed {
-    label 'fastqc'
+//process fastqc_after {
+    //label 'fastqc'
     
-    input:
-    path trimmed_reads
+    //input:
+     //tuple val(name), path(data)
     
-    output:
-    path "results/*" 
+    //output:
+    //path "*" 
     
-    script:
-    """
-    mkdir -p results
-    fastqc --noextract -o results ${data}
-    """
-}
+    //script:
+    //"""
+    //fastqc --noextract -o ${data}
+    //"""
+//}
+
+//process multiqc_after {
+    //label 'multiqc'
+    //publishDir "results/multiqc_after"
+
+    //input:
+     //path "*_fastqc.zip"     
+    
+    //output: 
+     //path "multiqc_report.html" 
+
+    //script:
+    //"""
+    //multiqc . -n "after_processing_multiqc_report.html"
+    //"""
+//}
+
 
 process make_transposable_element_gene {
     label 'seqkit'
@@ -104,6 +122,7 @@ process bowtie_index {
 
 process bowtie_align {
   label 'bowtie'
+  publishDir "results/filtering/", pattern: "*.log"
   
   input:
   tuple val(name), path(trimmed_reads)
@@ -122,6 +141,7 @@ process bowtie_align {
 
 process sam_to_bam {
   label 'samtools'
+  publishDir "results/bam/", pattern: "*.bam"
   
   input:
   tuple val(name), path(alignment)
@@ -138,21 +158,24 @@ process sam_to_bam {
 process bam_to_sorted_bam {
   
   label 'samtools'
+  publishDir "results/sorted_bam/", pattern: "*.sorted.bam"
   
   input:
   tuple val(name), path(bam_file)
   
   output:
-  tuple val(name), path("*sorted_bam"), emit: sorted_bam
+  tuple val(name), path("*sorted.bam"), emit: sorted_bam
   
   script:
   """
-  samtools sort -o ${name}.sorted_bam ${bam_file}
+  samtools sort -o ${name}.sorted.bam ${bam_file}
   """
 }  
 
 process sorted_bam_to_index {
+  
     label 'samtools'
+    publishDir "results/sorted_bam/", pattern: "*.sorted.bam.bai"
     
     input:
     tuple val(name), path(sorted_bam_file) 
