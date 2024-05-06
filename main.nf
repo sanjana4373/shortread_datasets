@@ -4,7 +4,10 @@ nextflow.enable.dsl=2
 include {FastQC}                         from "./modules/qualitycontrol.nf"
 include {MultiQC}                        from "./modules/qualitycontrol.nf"
 include {trim_galore}                    from "./modules/qualitycontrol.nf"
+<<<<<<< HEAD
 //include {fastqc_after}                   from "./modules/qualitycontrol.nf"
+=======
+>>>>>>> Clone
 //include {multiqc_after}                  from "./modules/qualitycontrol.nf"
 include {make_transposable_element_gene} from "./modules/qualitycontrol.nf"
 include {bowtie_index}                   from "./modules/qualitycontrol.nf"
