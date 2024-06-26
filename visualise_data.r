@@ -1,4 +1,3 @@
-#visualise_data
 #Below code - add sequence name to 1st and mapped_reads to 2nd column
 {r}
 parent_directory <- "/vol/data/smallRNAseq_12102023/X204SC23083269-Z01-F001/MasterThesis/results/idxstats"
@@ -134,7 +133,7 @@ de_u1c$diffexpressed <- "NO"
 
 print(p)
 
-differential gene expression analysis for u170k
+#differential gene expression analysis for u170k
 {r}
 setwd("/vol/data/smallRNAseq_12102023/X204SC23083269-Z01-F001/MasterThesis/results/idxstats")
 
@@ -202,7 +201,7 @@ de_u170k$diffexpressed <- "NO"
 print(p1)
 
 
-PC plot
+#Code - PC plot
 
 {r}
 
@@ -247,11 +246,3 @@ geom_point(size=3)+
   labs(x = paste0("PC1 (",round(summary$importance[2,1]*100),"%)"),
        y = paste0("PC2 (",round(summary$importance[2,2]*100),"%)"),
        title = "PC plot TE") 
-pca1
-
-
-
-
-
-
-
