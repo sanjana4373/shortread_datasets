@@ -1,6 +1,7 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+
 process FastQC {
     label 'fastqc'
     
@@ -12,14 +13,13 @@ process FastQC {
     
     script:
     """
-  
     fastqc --noextract -o . ${data}
     """
 }
 
 process MultiQC {
     label 'multiqc'
-    publishDir "results/multiqc"
+    
 
     input:
       path(results_files)
@@ -36,7 +36,7 @@ process MultiQC {
 process trim_galore {
 
     label 'trim_galore'
-    publishDir "results/trim_galore/", pattern: "*.html"
+    publishDir "results_TAIR10/trim_galore/", pattern: "*.html"
     
     input:
     tuple val(name), path(reads)
@@ -85,63 +85,65 @@ process trim_galore {
 //}
 
 
-process make_transposable_element_gene {
-    label 'seqkit'
+//process make_transposable_element_gene {
+    //label 'seqkit'
     
-    input:
-    path(latest_transcriptome)
-    path(Araport11)
+    //input:
+    //path(latest_transcriptome)
+    //path(Araport11)
     
-    output:
-    path "transposable_elements_atRTD3.fasta", emit: ref
+    //output:
+    //path "transposable_elements_atRTD3.fasta", emit: ref
     
-    script:
-    """
-    grep transposable_element_gene ${Araport11} | cut -f 1 > filter_these_transposable_element_gene.txt
+    //script:
+    //"""
+    //grep transposable_element_gene ${Araport11} | cut -f 1 > filter_these_transposable_element_gene.txt
     
-    seqkit grep -r -f filter_these_transposable_element_gene.txt ${latest_transcriptome} -o transposable_elements_atRTD3.fasta 
-    """
+    //seqkit grep -r -f filter_these_transposable_element_gene.txt ${latest_transcriptome} -o transposable_elements_atRTD3.fasta 
+    //"""
     
-}
+//}
+
 
 process bowtie_index {
-  label 'bowtie'
+    label 'bowtie'
+    publishDir "results_TAIR10/index", pattern: "*.ebwt", mode: 'copy'
   
-  input:
-  path(ref)
+    input:
+     path(ref)
   
-  output:
-  path "*"
+    output:
+    tuple path("*.ebwt"), val(ref.baseName), emit: index_files
   
-  script:
-  """
-  bowtie-build ${ref} ${ref.getSimpleName()}
-  """
-
+    script:
+    """
+    bowtie-build ${ref} ${ref.baseName}
+    """
 }
 
 process bowtie_align {
-  label 'bowtie'
-  publishDir "results/filtering/", pattern: "*.log"
+    label 'bowtie'
+    publishDir "results_TAIR10/filtering/", pattern: "*.sam", mode: 'copy'
   
-  input:
-  tuple val(name), path(trimmed_reads)
-  path(index)
+    input:
+    tuple val(name), path(trimmed_reads)
+    tuple path(index_files), val(ref_name)
+
+    output:
+    tuple val(name), path("*.fastq"), emit: filtered_reads
+    tuple val(name), path("*sam"), emit: sam
+    path("*.log"), emit: logs
   
-  output:
-  tuple val(name), path("*.fastq"), emit: filtered_reads
-  tuple val(name), path("*sam"), emit: sam
-  path("*.log"), emit: logs
-  
-  script:
-  """
-  bowtie -x ${index[0].getSimpleName()} ${trimmed_reads} -q --un ${trimmed_reads.getSimpleName()}_filtered.fastq -S ${name}.sam 2> ${name}.log
-  """
+    script:
+    """
+    bowtie -x ${ref_name} ${trimmed_reads} -q --un ${trimmed_reads.getSimpleName()}_filtered.fastq -S ${name}.sam 2> ${name}.log
+    """
 }
+
 
 process sam_to_bam {
   label 'samtools'
-  publishDir "results/bam/", pattern: "*.bam"
+  publishDir "results_TAIR10/bam/", pattern: "*.bam", mode: 'copy'
   
   input:
   tuple val(name), path(alignment)
@@ -155,10 +157,45 @@ process sam_to_bam {
   """
 }
 
+//process feature_counts {
+  
+  //label 'subread'
+  //publishDir "results/feature_counts", pattern: "*.txt"
+
+  //input:
+  //tuple val(name), path(bam)
+
+  //output: 
+  //tuple val(name), path("*.txt"), emit: txt
+
+  //script:
+  //"""
+  //samtools sort -o ${name}_sorted.bam ${bam}
+  //featureCounts -T 5 -t exon -g gene_id -a annotation.gtf -o ${name}_counts.txt ${name}_sorted.bam
+  //""" 
+//}
+
+//process feature_counts {
+    //label 'subread'
+    //publishDir "results/feature_counts", pattern: "*.txt"
+
+    //input:
+    //tuple val(name), path(bam)
+
+    //output: 
+    //tuple val(name), path("*.txt"), emit: txt
+
+    //script:
+    //"""
+    //featureCounts -T 5 -t exon -g gene_id -a /vol/data/smallRNAseq_12102023/X204SC23083269-Z01-F001/MasterThesis/siRNA_annotate.gff -o ${name}_counts.txt ${bam}
+    //"""
+//}
+
+
 process bam_to_sorted_bam {
   
   label 'samtools'
-  publishDir "results/sorted_bam/", pattern: "*.sorted.bam"
+  publishDir "results_TAIR10/sorted_bam/", pattern: "*.sorted.bam", mode: 'copy'
   
   input:
   tuple val(name), path(bam_file)
@@ -175,7 +212,7 @@ process bam_to_sorted_bam {
 process sorted_bam_to_index {
   
     label 'samtools'
-    publishDir "results/sorted_bam/", pattern: "*.sorted.bam.bai"
+    publishDir "results_TAIR10/sorted_bam/", pattern: "*.sorted.bam.bai", mode: 'copy'
     
     input:
     tuple val(name), path(sorted_bam_file) 
@@ -188,3 +225,36 @@ process sorted_bam_to_index {
     samtools index ${sorted_bam_file}
     """
 }
+
+process idxstats {
+    
+    label 'samtools'
+    publishDir "results_TAIR10/idxstats/", pattern: "*.log", mode: 'copy'
+    
+    input:
+    tuple val(name), path(sorted_bam_file)
+    
+    output:
+    tuple val(name), path("${sorted_bam_file}.log"), emit: bam_log
+    
+    script:
+    """
+    samtools idxstats ${sorted_bam_file} > ${sorted_bam_file}.log
+    """
+}
+
+//process sorted_bam_to_bed {
+
+   //label 'bedtools'
+   
+   //input:
+   //tuple val(name), path(sorted_bam_file)
+
+   //output:
+   //tuple val(name), path("${sorted_bam_file}.bed"), emit: bam.bed
+
+   //script:
+   //"""
+   //bedtools bamtobed -i ${sorted_bam_file} > ${sorted_bam_fiel}.bed
+   //"""
+//}
