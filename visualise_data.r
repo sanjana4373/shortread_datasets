@@ -200,7 +200,10 @@ de_u170k$diffexpressed <- "NO"
  
 print(p1)
 
+
 #Code - PC plot
+
+{r}
 
 setwd("/vol/data/smallRNAseq_12102023/X204SC23083269-Z01-F001/MasterThesis/DATA/TEs_results/idxstats")
 
@@ -243,5 +246,3 @@ geom_point(size=3)+
   labs(x = paste0("PC1 (",round(summary$importance[2,1]*100),"%)"),
        y = paste0("PC2 (",round(summary$importance[2,2]*100),"%)"),
        title = "PC plot TE") 
-       pca1 
-       
